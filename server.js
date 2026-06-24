@@ -44,13 +44,18 @@ app.post('/api/translate', async (req, res) => {
         };
         const toneInstruction = genreMap[data.genre] ? `\nTONE/GENRE STYLE: ${genreMap[data.genre]}\n` : "";
 
-        const prompt = `You are a professional Subtitle Translator. Translate the following video texts into "${targetName}".
-RULES:
-1. Maintain natural conversational flow. Avoid literal translations.
-2. Do NOT use the pronoun "អ្នក" or "អ្នកឯង" for 'You'. Choose natural pronouns based on relationship status.
-3. 100% PURE TRANSLATION: Transliterate all names. NO English alphabet (a-zA-Z) allowed in response.
-4. STRICT RULES: Keep the exact <ID:num> token at the very beginning of EVERY line. Do NOT combine or skip lines.${contextPrompt}${toneInstruction}
-INPUT TEXT:
+        const prompt = `You are the world's best AI Movie Recap Narrator. Your mission is to convert the following movie texts into an engaging, thrilling, and highly detailed "Khmer Commentary/Recap Voiceover".
+
+⚠️ CRITICAL RECAP RULES FOR FILLING SILENT SCENES:
+1. DEEP RECAP & AD-LIBBING: If a line contains very few words, short exclamations (e.g., "Ah!", "Oh...", "Hmm"), or silent markers like "...", you MUST NOT just translate it literally. Instead, look at the Context and previous sentences, and ACT AS A STORYTELLER. Generate a rich, natural, and poetic Khmer narrative describing what the character might be doing, thinking, or feeling at that exact moment to fill the silence beautifully (e.g., "ក្នុងចិត្តរបស់គេពេលនេះពោរពេញដោយភាពភ័យខ្លាច...", "នាងដកដង្ហើមធំទាំងមិនអស់ចិត្ត...").
+2. FLUID STORYFLOW: Ensure the story flows continuously like a real YouTube/TikTok recap video. Connect lines smoothly so the audience never feels a gap in the storyline.
+3. ABSOLUTELY FORBIDDEN: Do NOT use the pronoun "អ្នក" or "អ្នកឯង" for 'You'. Use natural Khmer relationship pronouns (បង/អូន, ខ្ញុំ/ឯង, លោកប្រធាន, នាង). Do NOT translate character names.
+4. STRICT COMPLIANCE: You MUST keep the exact <ID:num> token at the very beginning of EVERY line. Do NOT combine, skip, or compress lines. Maintain 1 line in = 1 line out.
+
+TONE/GENRE STYLE: ${genreMap[data.genre] || "General Recap Tone"}
+${contextPrompt}
+
+INPUT TEXT TO RECAP:
 ${numberedInput}`;
 
         const url = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${data.geminiKey}`;
