@@ -11,12 +11,6 @@ app.use(express.json({ limit: '50mb' }));
 app.post('/api/translate', async (req, res) => {
     try {
         const data = req.body;
-
-        // 🔒 ប្រព័ន្ធការពារសុវត្ថិភាព៖ បើគ្មាន License Key បាញ់មកទេ គឺទាត់ចោលភ្លាម
-        if (!data.key || data.key.trim() === "") {
-            return res.json({ status: "error", message: "🔒 សំណើត្រូវបានបដិសេធ! មិនមាន License Key ត្រឹមត្រូវទេ ឬអ្នកមិនទាន់បាន Log in។" });
-        }
-
         const targetName = { "km": "Khmer", "th": "Thai", "en": "English", "zh": "Chinese" }[data.target] || data.target;
 
         // 🟢 បំបែកអត្ថបទចេញពីកូដ <ID:លេខ>
