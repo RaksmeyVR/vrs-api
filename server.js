@@ -11,6 +11,12 @@ app.use(express.json({ limit: '50mb' }));
 app.post('/api/translate', async (req, res) => {
     try {
         const data = req.body;
+
+        // 🔒 ប្រព័ន្ធការពារសុវត្ថិភាព៖ បើគ្មាន License Key បាញ់មកទេ គឺទាត់ចោលភ្លាម
+        if (!data.key || data.key.trim() === "") {
+            return res.json({ status: "error", message: "🔒 សំណើត្រូវបានបដិសេធ! មិនមាន License Key ត្រឹមត្រូវទេ ឬអ្នកមិនទាន់បាន Log in។" });
+        }
+
         const targetName = { "km": "Khmer", "th": "Thai", "en": "English", "zh": "Chinese" }[data.target] || data.target;
 
         // 🟢 បំបែកអត្ថបទចេញពីកូដ <ID:លេខ>
@@ -80,7 +86,51 @@ ${numberedInput}`;
 
         if (response.ok) {
             const aiOutput = aiData.candidates[0].content.parts[0].text;
-            return res.json({ status: "success", translatedText: aiOutput });
+            
+            // 🟢 ១. រាប់ចំនួនបន្ទាត់ដែលបញ្ជូនទៅ AI
+            const linesUsed = inputLines.length; 
+
+            let newUsageFromDB = null;
+
+            // 🟢 ២. បាញ់ទិន្នន័យរាយការណ៍ទៅកាន់ Google Apps Script
+            try {
+                // បងយក Link ទាំង ៦ មកដាក់ទីនេះតែម្តង!
+                const GAS_LIST = [
+                    "https://script.google.com/macros/s/AKfycbxUhTvjYGAfxdYgJ_H1R9b0GGbrBK8zYU4LT3pvft_YKfKk2ZoKd4L9ljHbZLDATceHkA/exec",
+                    "https://script.google.com/macros/s/AKfycbzYZUIJlp5pJWpdD8vOmOSnVuHo1QknhhPjQNhw-x05QS3mdvS6LCEtBpFuvnHPHFeh/exec",
+                    "https://script.google.com/macros/s/AKfycbyrzBfPWuQNp12L9TDSlDWp2NNb3g4OcneXdfZKl1JVouHWIEteAb4fQ0wh83XM2YI/exec",
+                    "https://script.google.com/macros/s/AKfycbzZkq73WVRd6p-zQnndKAJ4DYcdfW0RtFMFY2f2_9heAGNEV7iNihABRvvAiML876bj-g/exec",
+                    "https://script.google.com/macros/s/AKfycbzutlHZTFRYj68_9FCvYbpMIcSSiLnWQj2TkVHIqRlbs1mbNjMuoJ3r-fNFSu5lWsId/exec",
+                    "https://script.google.com/macros/s/AKfycbxllsVsY3ck6iPHzNGMCwuPzrvgoKA-Z52kkmmca8ufRvpmHptL7TGLAgk4U2ZAE71O/exec"
+                ];
+                
+                // ឱ្យ Render ជ្រើសរើស Link មួយដោយចៃដន្យ (Random)
+                const gasUrl = GAS_LIST[Math.floor(Math.random() * GAS_LIST.length)]; 
+                
+                const gasRes = await fetch(gasUrl, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "updateLineUsage",
+                        key: data.key,
+                        linesUsed: linesUsed
+                    })
+                });
+                
+                const gasData = await gasRes.json();
+                if (gasData.status === "success") {
+                    newUsageFromDB = gasData.newUsage; 
+                }
+            } catch (dbErr) {
+                console.error("បរាជ័យក្នុងការរាយការណ៍ទៅ Google Sheet:", dbErr);
+            }
+
+            // 🟢 ៣. បាញ់លទ្ធផល និងចំនួន Usage ថ្មីត្រឡប់ទៅ Blogger វិញ
+            return res.json({ 
+                status: "success", 
+                translatedText: aiOutput,
+                newUsage: newUsageFromDB 
+            });
         } else {
             if (aiData.error && aiData.error.code === 429) {
                 return res.json({ status: "error", code: "QUOTA_LIMIT", message: "API Limit របស់ Gemini បានពេញ" });
