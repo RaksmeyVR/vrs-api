@@ -94,7 +94,7 @@ ${numberedInput}`;
 
             // 🟢 ២. បាញ់ទិន្នន័យរាយការណ៍ទៅកាន់ Google Apps Script
             try {
-                // បងយក Link ទាំង ៦ មកដាក់ទីនេះតែម្តង!
+                // Link Google Apps Script ទាំង ៦ គ្រាប់
                 const GAS_LIST = [
                     "https://script.google.com/macros/s/AKfycbxUhTvjYGAfxdYgJ_H1R9b0GGbrBK8zYU4LT3pvft_YKfKk2ZoKd4L9ljHbZLDATceHkA/exec",
                     "https://script.google.com/macros/s/AKfycbzYZUIJlp5pJWpdD8vOmOSnVuHo1QknhhPjQNhw-x05QS3mdvS6LCEtBpFuvnHPHFeh/exec",
